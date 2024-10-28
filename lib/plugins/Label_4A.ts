@@ -21,16 +21,8 @@ export class Label_4A extends DecoderPlugin {
     decodeResult.message = message;
     decodeResult.formatted.description = 'Latest New Format';
 
-
-    // Inmarsat C-band seems to prefix normal messages with a message number and flight number
-    let text = message.text;
-    if (text.match(/^M\d{2}A\w{6}/)) {
-        ResultFormatter.flightNumber(decodeResult, message.text.substring(4, 10).replace(/^([A-Z]+)0*/g, "$1"));
-        text = text.substring(10);
-    }
-
     decodeResult.decoded = true;
-    const fields = text.split(",");
+    const fields = message.text.split(",");
     if (fields.length === 11) {
         // variant 1
         ResultFormatter.time_of_day(decodeResult, DateTimeUtils.convertHHMMSSToTod(fields[0]));
@@ -39,7 +31,6 @@ export class Label_4A extends DecoderPlugin {
             ResultFormatter.callsign(decodeResult, fields[3]);
         ResultFormatter.departureAirport(decodeResult, fields[4]);
         ResultFormatter.arrivalAirport(decodeResult, fields[5]);
-        ResultFormatter.altitude(decodeResult, text.substring(48, 51) * 100);
         ResultFormatter.unknownArr(decodeResult, fields.slice(8));
     } else if (fields.length === 6) {
         if (fields[0].match(/^[NS]/)) {
@@ -69,7 +60,7 @@ export class Label_4A extends DecoderPlugin {
         }
     } else {
         decodeResult.decoded = false;
-        ResultFormatter.unknown(decodeResult, text);
+        ResultFormatter.unknown(decodeResult, message.text);
     }
 
     if (decodeResult.decoded) {
